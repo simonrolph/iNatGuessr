@@ -185,7 +185,7 @@ function fetchDataAndProcess() {
                     .openOn(map);
 
                 // show attribution
-                document.getElementById("attribContainer").style.display = "inline";
+                document.getElementById("attribContainer").style.display = "block";
 
                 // add the scores to the board
                 var scoreContainer = document.getElementById("scoreContainer");
