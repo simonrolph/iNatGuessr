@@ -63,3 +63,8 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: 10px; /* Adjust the value to reduce the top margin */
     margin-bottom: 5px; /* Adjust the value to reduce the bottom margin */
 }
+
+
+.not-clickable {
+    cursor: grab;
+}
