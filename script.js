@@ -33,7 +33,6 @@ function fetchDataAndProcess() {
     fetch(apiUrl)
     .then(response => response.json())
     .then(data => {
-        console.log(data);
 
         // CLEAN UP --------------
         // Clear the image container before appending new images
@@ -83,6 +82,7 @@ function fetchDataAndProcess() {
 
         var imgElement = document.createElement("img");
         imgElement.src = imageUrl;
+        imgElement.className = "modal-target";
         imageContainer.appendChild(imgElement);
 
         var focal_lat = data.results[0].geojson.coordinates[1];
@@ -93,32 +93,56 @@ function fetchDataAndProcess() {
         attrib.push(data.results[0].user.login);
         obs_ids.push(data.results[0].id);
 
+
+
+
         // OTHER IMAGES ---------
-        // Get some other observations
-        apiUrl2 = `https://api.inaturalist.org/v1/observations?lat=${focal_lat}&lng=${focal_lon}&radius=10&not_id=${data.results[0].id}&per_page=7&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true`+extra_params;
-        fetch(apiUrl2)
+        // how many observations?
+        apiUrlCount = `https://api.inaturalist.org/v1/observations?per_page=200&only_id=true&order_by=votes&lat=${focal_lat}&lng=${focal_lon}&radius=10&not_id=${data.results[0].id}&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true`+extra_params;
+
+        fetch(apiUrlCount)
             .then(response => response.json())
-            .then(data2 => {
+            .then(data => {
 
-                data2.results.forEach(function(element) {
-                    attrib.push(element.user.login);
-                    obs_ids.push(element.id);
-                    var imgElement = document.createElement("img");
-                    imgElement.src = element.photos[0].url.replace("/square", "/medium");
-                    imageContainer.appendChild(imgElement);
-                });
+                // how many results will be returned (max 200 normally but might be less)
+                var n_results = Math.min(data.total_results,200); 
+
+                // create array of 1.. n then shuffle, then get 7 values
+                var resultsPageIDs = Array.apply(null, {length: n_results}).map(Number.call, Number).sort(() => 0.5 - Math.random());
+                var selected = resultsPageIDs.slice(0, 7);
+
+                // get the observation IDs
+                var selectedIDs = [];
+                selected.forEach(function(element){
+                    selectedIDs.push(data.results[element].id);
+                })
+
+                // actually get the data for the selected IDs
+                apiUrl2 = 'https://api.inaturalist.org/v1/observations?id='+selectedIDs.join(",");
+
+                fetch(apiUrl2)
+                    .then(response => response.json())
+                    .then(data2 => {
+
+                        // add data to attribution, add image
+                        data2.results.forEach(function(element) {
+                            attrib.push(element.user.login);
+                            obs_ids.push(element.id);
+                            var imgElement = document.createElement("img");
+                            imgElement.className = "modal-target";
+                            imgElement.src = element.photos[0].url.replace("/square", "/medium");
+                            imageContainer.appendChild(imgElement);
+                        });
 
 
-                var obs_url = 'https://www.inaturalist.org/observations?id='+obs_ids.join(",")
+                        var obs_url = 'https://www.inaturalist.org/observations?id='+obs_ids.join(",")
 
-                var attribContainer = document.getElementById("attribContainer");
-                attribContainer.innerHTML = "<p>Observations by " + attrib.join(", ") + `  <a href='${obs_url}' target='_blank'>Explore on iNaturalist</a>`+"</p>"; // add attributions
-            })
+                        var attribContainer = document.getElementById("attribContainer");
+                        attribContainer.innerHTML = "<p>Observations by " + attrib.join(", ") + `  <a href='${obs_url}' target='_blank'>Explore on iNaturalist</a>`+"</p>"; // add attributions
+                    })
+                })
 
-        
-
-
-        // SECRET LOCATIONS -----------
+        // SECRET LOCATION ON MAP -----------
         // Define the secret location (latitude and longitude)
         var secretLocation = L.latLng(focal_lat, focal_lon);
 
@@ -217,4 +241,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Call the function initially to perform the process
     fetchDataAndProcess();
+});
+
+
+// IMAGE MODAL
+
+// Modal Setup
+var modal = document.getElementById('modal');
+
+modal.addEventListener('click', function() { 
+  modal.style.display = "none";
+});
+
+// global handler
+document.addEventListener('click', function (e) { 
+  if (e.target.className.indexOf('modal-target') !== -1) {
+      var img = e.target;
+      var modalImg = document.getElementById("modal-content");
+      modal.style.display = "block";
+      modalImg.src = img.src.replace("medium","large");
+   }
 });

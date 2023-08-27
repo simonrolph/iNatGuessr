@@ -15,7 +15,15 @@
     <h1>iNatGuessr</h1>
     <h4>Guess the location based on these <a href="https://www.inaturalist.org/" target="_blank">iNaturalist</a> observations.</h4>
     <h3>Location: <span id="locationName">World</span></h3>
+
+    <!-- The Modal -->
+    <div id="modal" class="modal">
+        <img id="modal-content" class="modal-content">
+    </div>
+
+    
     <div id="imageContainer"></div>
+    <p>Images may be subject to copyright.</p>
     <div id="attribContainer" style="display: none;"></div>
     <h3>Click the map to guess a location</h3>
     <div id="mapContainer">
@@ -27,7 +35,7 @@
     <div id="scoreContainer" ></div>
     
     
-    <h3>A prototype by Simon Rolph v0.0.2</h3>
+    <h3>A prototype by Simon Rolph v0.0.3</h3>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>

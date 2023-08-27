@@ -1,4 +1,5 @@
 body {
+    font-size: 125;
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
@@ -24,9 +25,7 @@ body {
     max-width: 400px;
     max-height: 300px;
     height: auto;
-    object-fit: cover;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+    object-fit: contain;
 }
 
 #map {
@@ -68,3 +67,42 @@ h1, h2, h3, h4, h5, h6 {
 .not-clickable {
     cursor: grab;
 }
+
+
+.modal-target {
+    width: 300px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .modal-target:hover {opacity: 0.7;}
+  
+  /* The Modal (background) */
+  .modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000000; /* Sit on top */
+    padding-top: 20px; /* Location of the box */
+    padding-bottom: 20px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+  }
+  
+  /* Modal Content (image) */
+  .modal-content {
+    margin: auto;
+    display: block;
+    width: 80%;
+    opacity: 1 !important;
+    max-width: 1200px;
+    object-fit: contain;
+  }
+
+
+
