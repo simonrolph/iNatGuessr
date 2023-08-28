@@ -1,4 +1,20 @@
-roundNumber = 1
+roundNumber = 1;
+gameScoreTotal = 0;
+
+// SCORING FORUMLA
+// Constants
+const MAX_SCORE = 5000; // Maximum score for a perfect guess
+
+
+// Calculate the score based on the distance
+function calculateScore(distance) {
+  if (distance < 50) {
+    return MAX_SCORE;
+  } else {
+    // Calculate a score inversely proportional to the distance
+    return Math.floor(MAX_SCORE * Math.exp(-distance/2500));
+  }
+}
 
 // get extra url parameters
 var urlParams = window.location.search;
@@ -21,31 +37,41 @@ if (urlParams.includes("?")) {
 
 function fetchDataAndProcess() {
     // STEP 1 get a random focal observation
-    // Generate a random day between 1 and 28 and month between 1 and 12
-    var randomDay = Math.floor(Math.random() * 28) + 1;
-    //var randomMonth = Math.floor(Math.random() * 12) + 1;
-    var randomPage = Math.floor(Math.random() * 100) + 1;
+    
 
-    // make url and get the data
-    var apiUrl = `https://api.inaturalist.org/v1/observations?day=${randomDay}&per_page=1&page=${randomPage}&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true`+extra_params;
+    if (extra_params.includes("place_id") || extra_params.includes("taxon_id")){ // if there's a place ID
+        var apiUrl = `https://api.inaturalist.org/v1/observations?order_by=random&page=${Math.floor(Math.random() * 150)}&per_page=1&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true`+extra_params;
+    } else { //if global
+        var randomLat = Math.random() * 160 + 1 - 80;
+        var randomlng = Math.random() * 340 + 1 - 170;
+
+        function createBoundingBoxString(lat, long) {
+            const latRange = 15;
+            const longRange = 15;
+        
+            const neLat = lat + latRange;
+            const neLng = long + longRange;
+            const swLat = lat - latRange;
+            const swLng = long - longRange;
+        
+            const boundingBoxString = `nelat=${neLat}&nelng=${neLng}&swlat=${swLat}&swlng=${swLng}`;
+            
+            return boundingBoxString;
+        }
+
+        // make url and get the data
+        var apiUrl = `https://api.inaturalist.org/v1/observations?order_by=random&per_page=1&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true`+extra_params+'&'+createBoundingBoxString(randomLat,randomlng);
+    }
+    
     
     // get the random observation and then do the rest
     fetch(apiUrl)
     .then(response => response.json())
     .then(data => {
-
-        // CLEAN UP --------------
-        // Clear the image container before appending new images
-        var imageContainer = document.getElementById("imageContainer");
-        imageContainer.innerHTML = ''; // Empty the container
-        document.getElementById("attribContainer").style.display = "none"; //hide the attribution
-
-        var mapContainer = document.getElementById("mapContainer");
-        mapContainer.innerHTML = '<div id="map" class="disabled"></div>'; // Remove the map
         
         // MAP --------------
         // Initialize the map
-        var map = L.map('map').setView([20, 0], 2);
+        var map = L.map('map').setView([0, 0], 1);
 
         // Create a tile layer using OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -73,6 +99,7 @@ function fetchDataAndProcess() {
         // attribution
         var attrib = [];
         var obs_ids = [];
+        var taxon_ids = [];
 
         // Get a reference to the image container div
         var imageContainer = document.getElementById("imageContainer");
@@ -83,6 +110,7 @@ function fetchDataAndProcess() {
         var imgElement = document.createElement("img");
         imgElement.src = imageUrl;
         imgElement.className = "modal-target";
+        imageContainer.innerHTML="";
         imageContainer.appendChild(imgElement);
 
         var focal_lat = data.results[0].geojson.coordinates[1];
@@ -98,7 +126,7 @@ function fetchDataAndProcess() {
 
         // OTHER IMAGES ---------
         // how many observations?
-        apiUrlCount = `https://api.inaturalist.org/v1/observations?per_page=200&only_id=true&order_by=votes&lat=${focal_lat}&lng=${focal_lon}&radius=10&not_id=${data.results[0].id}&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true`+extra_params;
+        apiUrlCount = `https://api.inaturalist.org/v1/observations?per_page=200&only_id=true&order_by=random&lat=${focal_lat}&lng=${focal_lon}&radius=10&not_id=${data.results[0].id}&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true`+extra_params;
 
         fetch(apiUrlCount)
             .then(response => response.json())
@@ -106,6 +134,11 @@ function fetchDataAndProcess() {
 
                 // how many results will be returned (max 200 normally but might be less)
                 var n_results = Math.min(data.total_results,200); 
+
+                // if not enough other photos then click the reset button (this is kinda badly programmed but oh well it works)
+                if(n_results <7){
+                    document.getElementById("refreshButton").click();
+                }
 
                 // create array of 1.. n then shuffle, then get 7 values
                 var resultsPageIDs = Array.apply(null, {length: n_results}).map(Number.call, Number).sort(() => 0.5 - Math.random());
@@ -128,6 +161,8 @@ function fetchDataAndProcess() {
                         data2.results.forEach(function(element) {
                             attrib.push(element.user.login);
                             obs_ids.push(element.id);
+
+                            taxon_ids.push(element.taxon.id)
                             var imgElement = document.createElement("img");
                             imgElement.className = "modal-target";
                             imgElement.src = element.photos[0].url.replace("/square", "/medium");
@@ -137,8 +172,10 @@ function fetchDataAndProcess() {
 
                         var obs_url = 'https://www.inaturalist.org/observations?id='+obs_ids.join(",")
 
+                        
+
                         var attribContainer = document.getElementById("attribContainer");
-                        attribContainer.innerHTML = "<p>Observations by " + attrib.join(", ") + `  <a href='${obs_url}' target='_blank'>Explore on iNaturalist</a>`+"</p>"; // add attributions
+                        attribContainer.innerHTML = "<p>Observations by " + attrib.join(", ") + "</p>" +`<p>  <a href='${obs_url}' target='_blank'>Explore on iNaturalist</a></p>`; // add attributions
                     })
                 })
 
@@ -150,6 +187,8 @@ function fetchDataAndProcess() {
         var secretMarker = L.marker(secretLocation, {
             opacity: 0, // Initially hide the marker
         }).addTo(map);
+
+        
 
 
         secretMarker._icon.classList.add("not-clickable");
@@ -208,17 +247,42 @@ function fetchDataAndProcess() {
                     .setContent('Distance: ' + Math.round(distance) + ' km')
                     .openOn(map);
 
+                console.log();
+
+
                 // show attribution
                 document.getElementById("attribContainer").style.display = "block";
+
+                // add the taxons to the map
+                //L.tileLayer('https://api.inaturalist.org/v1/grid/{z}/{x}/{y}.png?taxon_id='+taxon_ids.join(","),{
+                //    maxZoom: 19,
+                //    opacity: 0.8,
+                //    attribution: 'iNaturalist'
+                //}).addTo(map);
 
                 // add the scores to the board
                 var scoreContainer = document.getElementById("scoreContainer");
                 var roundScore = document.createElement("p");
             
                 // Add some text to the <p> element
-                roundScore.textContent = `Round ${roundNumber}: ${Math.round(distance)}km`;
+                roundScore.innerHTML = `Round ${roundNumber}: <b>${calculateScore(distance)}</b> Points (${Math.round(distance)}km)`;
 
                 scoreContainer.appendChild(roundScore);
+
+                gameScoreTotal = gameScoreTotal+calculateScore(distance);
+
+                if((roundNumber%5)==0){
+                    var gameScore = document.createElement("h4");
+                    gameScore.innerHTML = `Game ${roundNumber/5}: <b>${gameScoreTotal}</b> / 25000 Points`;
+                    scoreContainer.appendChild(gameScore);
+                    gameScoreTotal = 0;
+                }
+
+
+                roundNumber = roundNumber+1;
+
+                // make the button reappear
+                document.getElementById("refreshButton").style.display = "inline-block";
             }   
         });
 
@@ -235,8 +299,22 @@ document.addEventListener("DOMContentLoaded", function () {
     var refreshButton = document.getElementById("refreshButton");
 
     refreshButton.addEventListener("click", function () {
-        roundNumber = roundNumber+1;
+        
+
+        // CLEAN UP --------------
+        // Clear the image container before appending new images
+        var imageContainer = document.getElementById("imageContainer");
+        imageContainer.innerHTML = ''; // Empty the container
+        document.getElementById("attribContainer").style.display = "none"; //hide the attribution
+        document.getElementById("refreshButton").style.display = "none";
+
+        var mapContainer = document.getElementById("mapContainer");
+        mapContainer.innerHTML = '<div id="map" class="disabled"></div>'; // Remove the map
+
+        imageContainer.innerHTML="Loading observations...";
+        
         fetchDataAndProcess(); // Call the function to redo the process
+        document.body.scrollTop = document.documentElement.scrollTop = 0;
     });
 
     // Call the function initially to perform the process

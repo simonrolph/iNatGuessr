@@ -1,5 +1,4 @@
 body {
-    font-size: 125;
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
@@ -10,6 +9,22 @@ body {
     justify-content: center;
     min-height: 100vh;
     font-family: 'Courier New', monospace;
+}
+
+h1 {
+    font-size: 75px;
+}
+
+h3 {
+    font-size: 30px;
+}
+
+h4 {
+    font-size: 25px;
+}
+
+p {
+    font-size: 20px;
 }
 
 #imageContainer {
@@ -30,7 +45,7 @@ body {
 
 #map {
     width: 800px;
-    height: 600px;
+    height: 400px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
 }
 
@@ -46,8 +61,7 @@ body {
     padding: 10px 20px;
     text-align: center;
     text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
+    font-size: 40px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;

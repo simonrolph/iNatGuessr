@@ -5,11 +5,6 @@
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css"/>
-    <style>
-        #map {
-            height: 400px;
-        }
-    </style>
 </head>
 <body>
     <h1>iNatGuessr</h1>
@@ -19,23 +14,23 @@
     <!-- The Modal -->
     <div id="modal" class="modal">
         <img id="modal-content" class="modal-content">
+        <p style="color:aliceblue; text-align: center;">Click image to exit</p>
     </div>
 
     
-    <div id="imageContainer"></div>
-    <p>Images may be subject to copyright.</p>
-    <div id="attribContainer" style="display: none;"></div>
+    <div id="imageContainer">Loading observations...</div>
+    <p>Click an image to get a closer look. Images may be subject to copyright.</p>
+    <p id="attribContainer" style="display: none;"></p>
     <h3>Click the map to guess a location</h3>
     <div id="mapContainer">
         <div id="map" class="disabled"></div>
     </div>
     <br>
-    <button id="refreshButton">Next round</button>
+    <button id="refreshButton"  style="display: none;">Next round</button>
     <br>
     <div id="scoreContainer" ></div>
     
-    
-    <h3>A prototype by Simon Rolph v0.0.3</h3>
+    <p>A prototype by Simon Rolph v0.0.4</p>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>
