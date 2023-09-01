@@ -169,8 +169,12 @@ function fetchDataAndProcess() {
                             imageContainer.appendChild(imgElement);
                         });
 
-
-                        var obs_url = 'https://www.inaturalist.org/observations?id='+obs_ids.join(",")
+						
+                        var obs_url_place_id = 'any';
+                        if (place_id) {
+                            obs_url_place_id = place_id;
+                        }
+                        var obs_url = 'https://www.inaturalist.org/observations?place_id='+obs_url_place_id+'&id='+obs_ids.join(",")
 
                         
 
