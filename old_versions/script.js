@@ -1,5 +1,6 @@
 roundNumber = 1;
 gameScoreTotal = 0;
+gameId = Math.floor(Math.random() * 1000); // to reset cache on new games
 
 // SCORING FORUMLA
 // Constants
@@ -8,13 +9,26 @@ const MAX_SCORE = 5000; // Maximum score for a perfect guess
 
 // Calculate the score based on the distance
 function calculateScore(distance) {
-  if (distance < 50) {
+  if (distance < 100) {
     return MAX_SCORE;
   } else {
     // Calculate a score inversely proportional to the distance
     return Math.floor(MAX_SCORE * Math.exp(-distance/2500));
   }
 }
+
+// Calculate the score based on the distance - if a place is specified
+function calculateScorePlace(distance,area) {
+    // area = between 0 and 5000
+    var areaFactor = Math.sqrt(area)/100;
+
+    if (distance < 500*areaFactor) {
+      return MAX_SCORE;
+    } else {
+      // Calculate a score inversely proportional to the distance
+      return Math.floor(MAX_SCORE * Math.exp(-distance/2500/areaFactor));
+    }
+  }
 
 // get extra url parameters
 var urlParams = window.location.search;
@@ -40,14 +54,14 @@ function fetchDataAndProcess() {
     
 
     if (extra_params.includes("place_id") || extra_params.includes("taxon_id")){ // if there's a place ID
-        var apiUrl = `https://api.inaturalist.org/v1/observations?order_by=random&page=${Math.floor(Math.random() * 150)}&per_page=1&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true`+extra_params;
+        var apiUrl = `https://api.inaturalist.org/v1/observations?order_by=random&page=${roundNumber}&per_page=1&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true`+extra_params+"&id_above="+gameId;
     } else { //if global
-        var randomLat = Math.random() * 160 + 1 - 80;
-        var randomlng = Math.random() * 340 + 1 - 170;
+        var randomLat = Math.random() * 130 - 65;
+        var randomlng = Math.random() * 340 - 170;
 
         function createBoundingBoxString(lat, long) {
-            const latRange = 15;
-            const longRange = 15;
+            const latRange = 25;
+            const longRange = 10;
         
             const neLat = lat + latRange;
             const neLng = long + longRange;
@@ -78,6 +92,7 @@ function fetchDataAndProcess() {
             maxZoom: 19,
         }).addTo(map);
 
+
         // add a place geometry
         if (urlParams.includes("place_id")) {
             apiUrl3 = `https://api.inaturalist.org/v1/places/${place_id}`;
@@ -89,10 +104,12 @@ function fetchDataAndProcess() {
 
                             var placeGeojson = L.geoJSON(data3.results[0].geometry_geojson).addTo(map);
                             map.fitBounds(placeGeojson.getBounds());
-                        })
+
+                            placeArea = data3.results[0].bbox_area;
+                        })            
                         
         }
-
+        
 
 
         // IMAGES -----
@@ -265,11 +282,15 @@ function fetchDataAndProcess() {
                 var roundScore = document.createElement("p");
             
                 // Add some text to the <p> element
-                roundScore.innerHTML = `Round ${roundNumber}: <b>${calculateScore(distance)}</b> Points (${Math.round(distance)}km)`;
+                if (urlParams.includes("place_id")) {
+                    roundScore.innerHTML = `Round ${roundNumber}: <b>${calculateScorePlace(distance,placeArea)}</b> Points (${Math.round(distance)}km)`;
+                    gameScoreTotal = gameScoreTotal+calculateScorePlace(distance,placeArea);
+                } else {
+                    roundScore.innerHTML = `Round ${roundNumber}: <b>${calculateScore(distance)}</b> Points (${Math.round(distance)}km)`;
+                    gameScoreTotal = gameScoreTotal+calculateScore(distance);
+                }
 
                 scoreContainer.appendChild(roundScore);
-
-                gameScoreTotal = gameScoreTotal+calculateScore(distance);
 
                 if((roundNumber%5)==0){
                     var gameScore = document.createElement("h4");

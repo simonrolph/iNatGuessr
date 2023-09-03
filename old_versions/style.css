@@ -11,13 +11,6 @@ body {
     font-family: 'Courier New', monospace;
 }
 
-#game{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
 h1 {
     font-size: 75px;
 }
@@ -35,31 +28,19 @@ p {
 }
 
 #imageContainer {
-    width: 80vw;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid with a minimum column width of 200px */
-    gap: 10px; /* Gap between grid items */
-    justify-content: center; /* Center the grid horizontally */
-}
-
-figure {
-    text-align: center;
-    margin: 0;
-    display: flex; /* Use flexbox to vertically center content */
-    flex-direction: column; /* Stack image and caption vertically */
-    align-items: center; /* Center content horizontally */
-    justify-content: center; /* Center content vertically */
-    
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 #imageContainer img {
-    max-width: 100%; /* Ensure images do not exceed their container width */
-    height: auto; /* Maintain the aspect ratio of the images */
-    display: block; /* Remove extra spacing below inline images */
-}
-
-figcaption {
-    margin-top: 5px; /* Add some space between the image and caption */
+    flex: 1 1 calc(50% - 10px); /* Fluidly distribute images in 3 columns */
+    max-width: 400px;
+    max-height: 300px;
+    height: auto;
+    object-fit: contain;
 }
 
 #map {
@@ -68,26 +49,21 @@ figcaption {
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
 }
 
-button {
+#refreshButton {
+    background-color: #4CAF50;
     border: none;
     color: white;
     padding: 10px 20px;
     text-align: center;
     text-decoration: none;
-    
+    font-size: 40px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
     font-family: 'Courier New', monospace;
-    background-color: #3c3c3c;
 }
 
-.greenButton {
-    font-size: 30px;
-    background-color: #4CAF50;
-}
-
-.greenButton {
+#refreshButton:hover {
     background-color: #45a049;
 }
 
@@ -138,12 +114,4 @@ h1, h2, h3, h4, h5, h6 {
   }
 
 
-#scoreContainer {
-    border-style: solid;
-    padding: 20px;
-    min-width: 200px;
-}
 
-#tutorial{
-    margin:50px;
-}

@@ -2,36 +2,60 @@
 <html>
 <head>
     <title>iNatGuessr</title>
-    
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <h1>iNatGuessr</h1>
-    <h4>Guess the location based on these <a href="https://www.inaturalist.org/" target="_blank">iNaturalist</a> observations.</h4>
-    <h3>Location: <span id="locationName">World</span></h3>
-
-    <!-- The Modal -->
     <div id="modal" class="modal">
         <img id="modal-content" class="modal-content">
         <p style="color:aliceblue; text-align: center;">Click image to exit</p>
     </div>
 
-    
-    <div id="imageContainer">Loading observations...</div>
-    <p>Click an image to get a closer look. Images may be subject to copyright.</p>
-    <p id="attribContainer" style="display: none;"></p>
-    <h3>Click the map to guess a location</h3>
-    <div id="mapContainer">
-        <div id="map" class="disabled"></div>
+
+    <h1>iNatGuessr</h1>
+    <h4>Guess the location based on these <a href="https://www.inaturalist.org/" target="_blank">iNaturalist</a> observations.</h4>
+
+    <div id="tutorial">
+        <p>Welcome to iNatGuessr. A Guessr-style game where you are given a selection of images from iNaturalist observations. From these images it is your task to work out where they are from.</p>
+        <p>When you make a guess the actual location will be revealed. The game is played over 5 rounds with 5000 points per round</p>
+        <p>By default, the game is played across the whole globe and across all taxonomic groups, this can be a challenge!</p>
+        <p>You can specify a taxonomic group in the url by adding '?taxon_id=12345' and replace 12345 with the desired taxonomic ID</p>
+        <p>You can specify a place in the url by by adding '?place_id=12345' and replace 12345 with the desired place ID</p>
+        <p>You can specify multiple IDs by using comma separated values eg. '?place_id=12345,12346'</p>
+        <p>Good luck!</p>
     </div>
-    <br>
-    <button id="refreshButton"  style="display: none;">Next round</button>
-    <br>
-    <div id="scoreContainer" ></div>
+    <button id="playButton" class="greenButton">Start game</button>
+
+    <span id ="game" style="display: none;">
+        <p id="taxonContainer"></p>
+
+        <div id="imageContainer"><p>Loading observations...</p></div>
+        <p>Click an image to get a closer look. Images may be subject to copyright.</p>
+        <h4>Click the map to guess a location</h4>
+        <p id="placeContainer"></p>
+
+        <div id="mapContainer">
+            <div id="map" class="disabled"></div>
+        </div>
+
+        <p id="inatOutwardContainer"></p>
+
+        <br>
+        <button id="refreshButton" class="greenButton"  style="display: none;">Next round</button>
+        <br>
+        <h4>Your scores:</h4>
+        <div id="scoreContainer" ></div>
+        <button id="copyButton">Copy scores to Clipboard</button>
+    </span>
     
-    <p>A prototype by Simon Rolph v0.0.4</p>
+    <p>A prototype by Simon Rolph v0.1.0</p>
+
+    <img src="images/powered_by.png" style="width: 150px;">
+    <br>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="script.js"></script>
+    <!--<script src="js/seedrandom.js"></script>-->
+    <script src="script2.js"></script>
 </body>
 </html>
