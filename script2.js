@@ -9,10 +9,12 @@ var scoreContainer = document.getElementById("scoreContainer");
 var inatOutwardContainer = document.getElementById("inatOutwardContainer");
 var taxonContainer = document.getElementById("taxonContainer");
 var placeContainer = document.getElementById("placeContainer");
+var scoreFactorContainer = document.getElementById("scoreFactorContainer");
 
 // Declare as global variables
 var roundNumber = 1;
 var gameScoreTotal = 0;
+var scoreFactor = 1;
 
 var roundsPerGame = 5;
 var secretRevealed = false;
@@ -41,7 +43,7 @@ function getCustomParams() {
 var customParams = getCustomParams();
 
 // things applied to all queries
-var baseParams = `&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true&id_above=${gameId}&acc_below=150`
+var baseParams = `&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true&acc_below=150`
 
 // add the image to the board
 function addImage(result) {
@@ -102,9 +104,9 @@ async function getRandomObvs() {
 
     // if any custom parameter have been assigned
     if (customParams.includes("place_id")) {
-        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}&order_by=random${baseParams}${customParams}`;
+        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}&order_by=random${baseParams}${customParams}&id_above=${gameId}`;
     } else {
-        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}&order_by=random${baseParams}${customParams}${createGlobalBoundingBoxString()}`;
+        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}&order_by=random${baseParams}${customParams}${createGlobalBoundingBoxString()}&id_above=${gameId}`;
     }
 
 
@@ -143,6 +145,8 @@ function clearPage(){
     var mapContainer = document.getElementById("mapContainer");
     mapContainer.innerHTML = '<div id="map" class="disabled"></div>'; // Remove the map
     secretRevealed = false;
+
+    scoreFactorContainer.innerHTML = `<p style="font-size: 16px;">Score guide: 1000km = ${calculateScore(1000)} points, 500km = ${calculateScore(500)} points, <${Math.ceil(100*Math.sqrt(scoreFactor))}km = 5000 points </p>`
 }
 
 
@@ -263,18 +267,40 @@ function handleMapClick(e) {
     }
 }
 
+// see how many grid cells contain results for score scaling
+async function scoreScaleFactor(){
+    var apiUrl = `https://api.inaturalist.org/v1/heatmap/0/0/0.grid.json?per_page=0`+baseParams+customParams;
+    var nGrids = 0;
+
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    data.grid.forEach(function(row) {
+        nGrids += row.trim().length;
+    });
+
+    // no filter = 3060 grids
+    return Math.sqrt(Math.min(1,nGrids/3060)); 
+}
+
+// trigger it immediately so it'll be cached by inat for later use
+async function main() {
+    await scoreScaleFactor();
+}
+main();
+
 // Calculate the score based on the distance
-function calculateGlobalScore(distance) {
-  if (distance < 100) {
+function calculateScore(distance) {
+  if (distance < 100*Math.sqrt(scoreFactor)) {
     return 5000;
   } else {
     // Calculate a score inversely proportional to the distance
-    return Math.floor(5000 * Math.exp(-distance/2500));
+    return Math.floor(5000 * Math.exp(-distance/2500/scoreFactor));
   }
 }
 
 function addScore(distance){
-    let score = calculateGlobalScore(distance);
+    let score = calculateScore(distance);
 
     var roundScore = document.createElement("p");
            
@@ -362,13 +388,13 @@ function addCustomTaxon(){
 
 // generate a new round
 async function generateNewRound() {
+    scoreFactor = await scoreScaleFactor();
+    console.log("Score factor:"+scoreFactor);
 
     clearPage();
 
     // get main observation
     var focalObvs = await getRandomObvs();
-
-    console.log(focalObvs);
 
     // create the map
     createMap(
