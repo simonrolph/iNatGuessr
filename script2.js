@@ -1,6 +1,3 @@
-
-
-
 // get things from the page
 var imageContainer = document.getElementById("imageContainer");
 var nextRoundButton = document.getElementById("refreshButton");
@@ -21,7 +18,6 @@ var secretRevealed = false;
 var secretLocation;
 var secretMarker;
 var map;
-var gameId = Math.floor(Math.random()*5000);
 
 // get custom user query parameters
 function getCustomParams() {
@@ -41,6 +37,25 @@ function getCustomParams() {
 
 // user supplied parameyers
 var customParams = getCustomParams();
+
+// set up seeding
+
+if (customParams.includes("seed")) {
+    var seeded= true; // useful variable as to whether a seed is being used
+    var maxID = 1000000;
+    var params = customParams.split('&');
+    var seed = params[params.findIndex(params => params.includes("seed"))].split("=")[1]; // get the seed
+    var myrng = new Math.seedrandom(seed);
+    var obvsIdsSeededParams = []
+
+    for (let step = 0; step < 200; step++) {
+        obvsIdsSeededParams.push("&id_above="+Math.floor(myrng()*maxID)+"&order_by=id");
+    }
+} else {
+    var seeded = false;
+    var obvsIdsSeededParamsUnseeded = "&id_above="+Math.floor(Math.random()*5000)+"&order_by=random";
+}
+
 
 // things applied to all queries
 var baseParams = `&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true&acc_below=150`
@@ -78,8 +93,13 @@ function addImage(result) {
 
 // create boundingbox
 function createGlobalBoundingBoxString() {
-    var lat = Math.random() * 130 - 65;
-    var long = Math.random() * 340 - 170;
+    if (seeded) {
+        var lat = myrng() * 130 - 65;
+        var long = myrng() * 340 - 170;
+    } else {
+        var lat = Math.random() * 130 - 65;
+        var long = Math.random() * 340 - 170;
+    }
 
     
 
@@ -102,17 +122,23 @@ async function getRandomObvs() {
     console.log(baseParams);
     console.log(customParams);
 
+    if(seeded){
+        var seedParams = obvsIdsSeededParams[roundNumber-1];
+    } else {
+        var seedParams = obvsIdsSeededParamsUnseeded;
+    }
+
     // if any custom parameter have been assigned
     if (customParams.includes("place_id")) {
-        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}&order_by=random${baseParams}${customParams}&id_above=${gameId}`;
+        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}${baseParams}${customParams}${seedParams}`;
     } else {
-        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}&order_by=random${baseParams}${customParams}${createGlobalBoundingBoxString()}&id_above=${gameId}`;
+        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}${baseParams}${customParams}${seedParams}${createGlobalBoundingBoxString()}`;
     }
 
 
     const response = await fetch(apiUrl);
     const data = await response.json();
-
+    // console.log(data);
     imageContainer.innerHTML=""
     addImage(data.results[0]);
     
