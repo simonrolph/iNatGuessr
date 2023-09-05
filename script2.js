@@ -9,6 +9,7 @@ var scoreContainer = document.getElementById("scoreContainer");
 var inatOutwardContainer = document.getElementById("inatOutwardContainer");
 var taxonContainer = document.getElementById("taxonContainer");
 var placeContainer = document.getElementById("placeContainer");
+var scoreFactorContainer = document.getElementById("scoreFactorContainer");
 
 // Declare as global variables
 var roundNumber = 1;
@@ -144,6 +145,8 @@ function clearPage(){
     var mapContainer = document.getElementById("mapContainer");
     mapContainer.innerHTML = '<div id="map" class="disabled"></div>'; // Remove the map
     secretRevealed = false;
+
+    scoreFactorContainer.innerHTML = `<p style="font-size: 16px;">Score guide: 1000km = ${calculateScore(1000)} points, 500km = ${calculateScore(500)} points, <${Math.ceil(100*Math.sqrt(scoreFactor))}km = 5000 points </p>`
 }
 
 
@@ -287,7 +290,7 @@ async function main() {
 main();
 
 // Calculate the score based on the distance
-function calculateGlobalScore(distance) {
+function calculateScore(distance) {
   if (distance < 100*Math.sqrt(scoreFactor)) {
     return 5000;
   } else {
@@ -297,7 +300,7 @@ function calculateGlobalScore(distance) {
 }
 
 function addScore(distance){
-    let score = calculateGlobalScore(distance);
+    let score = calculateScore(distance);
 
     var roundScore = document.createElement("p");
            
