@@ -39,12 +39,54 @@ function getCustomParams() {
 var customParams = getCustomParams();
 
 // set up seeding
+function getFormattedUtcDate() {
+    const today = new Date();
+    const year = today.getUTCFullYear();
+    const month = String(today.getUTCMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+    const day = String(today.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function timeUntilNextUtcDay() {
+    // Get the current UTC date and time
+    const now = new Date();
+    const utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000); // Convert to UTC
+
+    // Calculate the UTC time at midnight of the next day
+    const nextDay = new Date(utcNow);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+    nextDay.setUTCHours(0, 0, 0, 0);
+
+    // Calculate the time difference in milliseconds
+    const timeDifference = nextDay - utcNow;
+
+    // Convert the time difference to hours, minutes, and seconds
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+    return { hours, minutes, seconds };
+}
+
+
+
 
 if (customParams.includes("seed")) {
     var seeded= true; // useful variable as to whether a seed is being used
-    var maxID = 1000000;
+    var maxID = 10000000
     var params = customParams.split('&');
     var seed = params[params.findIndex(params => params.includes("seed"))].split("=")[1]; // get the seed
+
+    // daily special seed
+    if (seed.toLowerCase() == "daily"){
+        console.log("DAILY CHALLENGE ACTIVATED!")
+        seed = getFormattedUtcDate();
+        scoreContainer.innerHTML = "<p>Daily Challenge: "+seed+"</p>";
+
+        const timeRemaining = timeUntilNextUtcDay();
+        console.log(`Time until next UTC day: ${timeRemaining.hours} hours, ${timeRemaining.minutes} minutes, ${timeRemaining.seconds} seconds`);
+    }
+
     var myrng = new Math.seedrandom(seed);
     var obvsIdsSeededParams = []
 
@@ -145,15 +187,42 @@ async function getRandomObvs() {
     return data;
 }
 
-
+// shuffle array
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
 
 // get n supporting observations
 async function getSupportingObvs(nObvs, lat, lng,idIgnore) {
     var radius = 10;
-    var apiUrl = `https://api.inaturalist.org/v1/observations?lat=${lat}&lng=${lng}&radius=${radius}&per_page=${nObvs}&order_by=random${baseParams}${customParams}&not_id=${idIgnore}`;
 
-    const response = await fetch(apiUrl);
-    const data = await response.json();
+    if (seeded){ // if there's a seed then we can't rely on order_by=random so we get top 200(or less) ordered by ID then randomly pick 7 from that 200
+        // get ids of 200 (not there is a createed at d2 to try to avoid someone uploading an obvservation mid day and messing it up)
+        var apiUrl1 = `https://api.inaturalist.org/v1/observations?lat=${lat}&lng=${lng}&radius=${radius}&per_page=200&only_id=true&order_by=id${baseParams}${customParams}&not_id=${idIgnore}&created_d2=2023-09-06`;
+        var response1 = await fetch(apiUrl1);
+        var data1 = await response1.json();
+
+        // get nObvs IDs from the list
+        var nResults = data1.results.length;
+        var selectedIDs = [];
+        for (let i = 0; i < nObvs; i++) {
+            selectedIDs.push(data1.results[Math.round(i / nObvs * nResults)].id);
+        }
+
+        // do another API call for those IDs
+        var apiUrl2 = 'https://api.inaturalist.org/v1/observations?id='+selectedIDs.join(",");
+        var response2 = await fetch(apiUrl2);
+        var data = await response2.json();
+        
+    } else {
+        var apiUrl = `https://api.inaturalist.org/v1/observations?lat=${lat}&lng=${lng}&radius=${radius}&per_page=${nObvs}&order_by=random${baseParams}${customParams}&not_id=${idIgnore}`;
+        var response = await fetch(apiUrl);
+        var data = await response.json();
+    }
+    
 
     data.results.forEach(function(element) {
         addImage(element);
@@ -439,6 +508,8 @@ async function generateNewRound() {
 
     addCustomPlace();
     addCustomTaxon();
+
+    window.scrollTo(0, 0); // move to top of page
 
     // build a list of IDs for outward URL
     var obs_ids = [focalObvs.results[0].id];
