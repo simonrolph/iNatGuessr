@@ -69,10 +69,9 @@ function timeUntilNextUtcDay() {
 }
 
 
-
-
+var seeded = false;
 if (customParams.includes("seed")) {
-    var seeded= true; // useful variable as to whether a seed is being used
+    seeded= true; // useful variable as to whether a seed is being used
     var maxID = 10000000
     var params = customParams.split('&');
     var seed = params[params.findIndex(params => params.includes("seed"))].split("=")[1]; // get the seed
@@ -91,10 +90,10 @@ if (customParams.includes("seed")) {
     var obvsIdsSeededParams = []
 
     for (let step = 0; step < 200; step++) {
-        obvsIdsSeededParams.push("&id_above="+Math.floor(myrng()*maxID)+"&order_by=id");
+        obvsIdsSeededParams.push("&id_above="+Math.floor(myrng()*maxID)+"&order_by=id&order=asc");
     }
 } else {
-    var seeded = false;
+
     var obvsIdsSeededParamsUnseeded = "&id_above="+Math.floor(Math.random()*5000)+"&order_by=random";
 }
 
@@ -201,7 +200,7 @@ async function getSupportingObvs(nObvs, lat, lng,idIgnore) {
 
     if (seeded){ // if there's a seed then we can't rely on order_by=random so we get top 200(or less) ordered by ID then randomly pick 7 from that 200
         // get ids of 200 (not there is a createed at d2 to try to avoid someone uploading an obvservation mid day and messing it up)
-        var apiUrl1 = `https://api.inaturalist.org/v1/observations?lat=${lat}&lng=${lng}&radius=${radius}&per_page=200&only_id=true&order_by=id${baseParams}${customParams}&not_id=${idIgnore}&created_d2=2023-09-06`;
+        var apiUrl1 = `https://api.inaturalist.org/v1/observations?lat=${lat}&lng=${lng}&radius=${radius}&per_page=200&only_id=true&order_by=id${baseParams}${customParams}&not_id=${idIgnore}&created_d2=2023-09-06&order=asc`;
         var response1 = await fetch(apiUrl1);
         var data1 = await response1.json();
 
@@ -211,6 +210,8 @@ async function getSupportingObvs(nObvs, lat, lng,idIgnore) {
         for (let i = 0; i < nObvs; i++) {
             selectedIDs.push(data1.results[Math.round(i / nObvs * nResults)].id);
         }
+
+        console.log(selectedIDs);
 
         // do another API call for those IDs
         var apiUrl2 = 'https://api.inaturalist.org/v1/observations?id='+selectedIDs.join(",");
