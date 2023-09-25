@@ -7,6 +7,7 @@ var inatOutwardContainer = document.getElementById("inatOutwardContainer");
 var taxonContainer = document.getElementById("taxonContainer");
 var placeContainer = document.getElementById("placeContainer");
 var scoreFactorContainer = document.getElementById("scoreFactorContainer");
+var gameSettingsContainer = document.getElementById("gameSettings");
 
 // Declare as global variables
 var roundNumber = 1;
@@ -28,6 +29,7 @@ function getCustomParams() {
         console.log("Custom URL parameters supplied")
 
         var extra_params = "&"+params.join("&");
+        gameSettingsContainer.innerHTML = "Current game settings: " + params.join(", ")
     } else {
         extra_params = "";
         console.log("No custom URL parameters supplied")
@@ -36,6 +38,7 @@ function getCustomParams() {
 }
 
 // user supplied parameyers
+
 var customParams = getCustomParams();
 
 // set up seeding
@@ -100,6 +103,7 @@ if (customParams.includes("seed")) {
 
 // things applied to all queries
 var baseParams = `&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true&acc_below=150`
+console.log(baseParams)
 
 // add the image to the board
 function addImage(result) {
@@ -132,6 +136,73 @@ function addImage(result) {
     imageContainer.appendChild(figureElement);
 }
 
+// alternative approach for getting a bounding box
+// Work in progress TODO
+function flngfromgrid(x,z) { return (x/Math.pow(2,z)*360-180); };
+function flatfromgrid(y,z) {
+    let n = Math.PI-2*Math.PI*y/Math.pow(2,z);
+    return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+};
+
+async function createBoundingBoxQueryGrid(){
+    var apiUrl = `https://api.inaturalist.org/v1/heatmap/0/0/0.grid.json?per_page=0`+baseParams+customParams;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    // GET A ROW
+    var rows = []
+
+    // create an array with the row values that contain data
+    for (let i = 0; i < 64; i++) {
+        var nInRow = data.grid[i].trim().length
+        if (nInRow>0){
+            rows = rows.concat(Array.from({ length: nInRow }, () => i));
+        }
+    }
+
+    // select a row with data in it
+    if (seeded) {
+        var randomRow = rows[Math.floor(myrng() * rows.length)];
+    } else {
+        var randomRow = rows[Math.floor(Math.random() * rows.length)];
+    }
+
+
+    
+    // GET A COL
+    var rowData = data.grid[randomRow];
+    const nonWhitespacePositions = [];
+    for (let ii = 0; ii < rowData.length; ii++) {
+        if (rowData[ii] !== ' ') {
+          nonWhitespacePositions.push(ii);
+        }
+    }
+
+    // select a colmn with data in it
+    if (seeded) {
+        var randomCol = nonWhitespacePositions[Math.floor(myrng() * nonWhitespacePositions.length)];
+    } else {
+        var randomCol = nonWhitespacePositions[Math.floor(Math.random() * nonWhitespacePositions.length)];
+    }
+
+   
+    randomRow = Math.floor(randomRow/2);
+    randomCol = Math.floor(randomCol/2);
+
+    console.log("x = " + randomCol);
+    console.log("y = " + randomRow);
+
+    const z=5;
+    const neLat = flatfromgrid(randomRow,z);
+    const neLng = flngfromgrid(randomCol+1,z);
+    const swLat = flatfromgrid(randomRow+1,z);
+    const swLng = flngfromgrid(randomCol,z);
+
+    const boundingBoxString = `&nelat=${neLat}&nelng=${neLng}&swlat=${swLat}&swlng=${swLng}`;
+    console.log(boundingBoxString);
+    return boundingBoxString;
+}
+
 // create boundingbox
 function createGlobalBoundingBoxString() {
     if (seeded) {
@@ -144,8 +215,8 @@ function createGlobalBoundingBoxString() {
 
     
 
-    const latRange = 15 + Math.floor(20*(Math.abs(lat)/65)); // bigger lat range nearer the poles
-    const longRange = 15;
+    const latRange = 30 + Math.floor(20*(Math.abs(lat)/65)); // bigger lat range nearer the poles
+    const longRange = 30;
 
     const neLat = lat + latRange;
     const neLng = long + longRange;
@@ -169,17 +240,20 @@ async function getRandomObvs() {
         var seedParams = obvsIdsSeededParamsUnseeded;
     }
 
+    var boundingBox = await createGlobalBoundingBoxString()
+
     // if any custom parameter have been assigned
     if (customParams.includes("place_id")) {
         var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}${baseParams}${customParams}${seedParams}`;
     } else {
-        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}${baseParams}${customParams}${seedParams}${createGlobalBoundingBoxString()}`;
+        var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}${baseParams}${customParams}${seedParams}`+boundingBox;
     }
+    console.log( apiUrl);
 
 
     const response = await fetch(apiUrl);
     const data = await response.json();
-    // console.log(data);
+    //console.log(data);
     imageContainer.innerHTML=""
     addImage(data.results[0]);
     
@@ -418,6 +492,7 @@ function endGame(){
     var gameScore = document.createElement("p");
     gameScore.innerHTML = `<b>Game ${roundNumber/roundsPerGame}: ${gameScoreTotal} / 25000 Points</b>`;
     scoreContainer.appendChild(gameScore);
+    gameScoreTotal = 0;
 }
 
 //
@@ -454,7 +529,7 @@ function addCustomPlace(){
     }
 }
 
-
+// doesn't work for iconic taxa so have removed
 function addCustomTaxon(){
     // get place names
     var params = customParams.split('&');
@@ -530,7 +605,7 @@ playButton.addEventListener("click", function () {
     document.getElementById("game").style.display="flex";
     playButton.style.display="none";
     document.getElementById("tutorial").style.display="none";
-    
+    document.getElementById("tutorial2").style.display="none";
 
 
     // Call the function initially to perform the process

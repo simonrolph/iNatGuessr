@@ -18,8 +18,15 @@ body {
     justify-content: center;
 }
 
+a{
+    text-decoration: none;
+    color: #45a049;
+}
+
 h1 {
     font-size: 75px;
+    text-decoration: none; /* Remove underlines */
+    color: inherit; /* Use the default text color */
 }
 
 h3 {
@@ -145,5 +152,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #tutorial{
-    margin:50px;
+    margin:0px 50px 0px 50px;
 }
+
+
+#tutorial2{
+    margin:0px 50px 0px 50px;
+}
+
+
+hr {
+    border: 10px solid green;
+    border-radius: 5px;
+  }
