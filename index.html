@@ -13,22 +13,24 @@
     </div>
 
 
-    <h1>iNatGuessr</h1>
-    <h4>Guess the location based on these <a href="https://www.inaturalist.org/" target="_blank">iNaturalist</a> observations.</h4>
+     <h1>iNatGuessr</h1>
+    <h4>Guess the location based on the <a href="https://www.inaturalist.org/" target="_blank">iNaturalist</a> observations!</h4>
 
-    <div id="tutorial">
-        <p>Welcome to iNatGuessr. A Guessr-style game where you are given a selection of images from iNaturalist observations. From these images it is your task to work out where they are from.</p>
-        <p>When you make a guess the actual location will be revealed. The game is played over 5 rounds with 5000 points per round</p>
-        <p>By default, the game is played across the whole globe and across all taxonomic groups, this can be a challenge!</p>
-        <p>You can specify a taxonomic group in the url by adding '?taxon_id=12345' and replace 12345 with the desired taxonomic ID</p>
-        <p>You can specify a place in the url by by adding '?place_id=12345' and replace 12345 with the desired place ID</p>
-        <p>You can specify multiple IDs by using comma separated values eg. '?place_id=12345,12346'</p>
-        <p>Good luck!</p>
-    </div>
+    <span id="tutorial">
+        <p>Welcome to iNatGuessr. A Guessr-style game where you are given a selection of images from iNaturalist observations. From these images it is your task to work out where they are from. When you make a guess the actual location will be revealed. The game is played over 5 rounds with 5000 points per round. Good luck!</p>
+        <p id="gameSettings">Current game settings:</p>
+    </span>
     <button id="playButton" class="greenButton">Start game</button>
 
+    <br>
+
+    <div id="tutorial2">
+        <p><b>Try a game variation:</b> <a href="?">Everything, everywhere</a> 🌍 |  <a href="?taxon_id=3">Birds</a> 🐦🌍 | <a href="?iconic_taxa=Plantae">Plants</a> 🌳🌲🌴🌍 | <a href="?iconic_taxa=Amphibia,Reptilia">Herptiles</a> 🐸🦎🐊🌍 | <a href="?iconic_taxa=Actinopterygii">Fish</a> 🐟🐠🌍 | <a href="?place_id=1">USA Only</a> 🇺🇸</p>
+        <p><b>Create a custom game:</b> You can specify a taxonomic group in the url by adding '?taxon_id=12345' and replace 12345 with the desired taxonomic ID. Similarly, you can specify a place in the url by by adding '?place_id=12345' and replace 12345 with the desired place ID. You can specify multiple IDs by using comma separated values eg. '?place_id=12345,12346'. Want more than just places and taxa? You can use any of the normal iNaturalist <a href="https://forum.inaturalist.org/t/how-to-use-inaturalists-search-urls-wiki-part-1-of-2/63" target="_blank">search parameters</a>.</p>
+    </div>
+
     <span id ="game" style="display: none;">
-        <p id="taxonContainer"></p>
+        <!--<p id="taxonContainer"></p>-->
 
         <div id="imageContainer"><p>Loading observations...</p></div>
         <p style="font-size: 16px;">Click an image to get a closer look. Images may be subject to copyright.</p>
@@ -50,7 +52,7 @@
         <button id="copyButton">Copy scores to Clipboard</button>
     </span>
     
-    <p>A prototype by Simon Rolph v0.1.1</p>
+    <p>A prototype by Simon Rolph v0.1.2</p>
 
     <img src="images/powered_by.png" style="width: 150px;">
     <br>
