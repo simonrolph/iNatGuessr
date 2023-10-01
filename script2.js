@@ -7,7 +7,6 @@ var inatOutwardContainer = document.getElementById("inatOutwardContainer");
 var taxonContainer = document.getElementById("taxonContainer");
 var placeContainer = document.getElementById("placeContainer");
 var scoreFactorContainer = document.getElementById("scoreFactorContainer");
-var gameSettingsContainer = document.getElementById("gameSettings");
 
 // Declare as global variables
 var roundNumber = 1;
@@ -15,10 +14,42 @@ var gameScoreTotal = 0;
 var scoreFactor = 1;
 
 var roundsPerGame = 5;
+var nGames =100;
 var secretRevealed = false;
 var secretLocation;
 var secretMarker;
 var map;
+
+// things applied to all queries
+var baseParams = `&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true&acc_below=150`
+console.log(baseParams)
+
+// Get the input field
+var inputField = document.getElementById("fname");
+
+
+// Get the value of the "seed" parameter from the URL
+var urlParams = new URLSearchParams(window.location.search);
+var seedValue = urlParams.get("seed");
+
+console.log(seedValue);
+
+// Get the radio buttons
+var dailyRadio = document.getElementById("dailyRadio");
+var endlessRadio = document.getElementById("endlessRadio");
+var customRadio = document.getElementById("customRadio");
+
+// Check the value of the "seed" parameter and set the radio and input field accordingly
+if (seedValue === "daily") {
+    dailyRadio.checked = true;
+    inputField.value = "";
+} else if (seedValue) {
+    customRadio.checked = true;
+    inputField.value = seedValue;
+} else {
+    endlessRadio.checked = true;
+    inputField.value = "";
+}
 
 // get custom user query parameters
 function getCustomParams() {
@@ -29,7 +60,6 @@ function getCustomParams() {
         console.log("Custom URL parameters supplied")
 
         var extra_params = "&"+params.join("&");
-        gameSettingsContainer.innerHTML = "Current game settings: " + params.join(", ")
     } else {
         extra_params = "";
         console.log("No custom URL parameters supplied")
@@ -37,9 +67,9 @@ function getCustomParams() {
     return extra_params
 }
 
-// user supplied parameyers
 
-var customParams = getCustomParams();
+
+
 
 // set up seeding
 function getFormattedUtcDate() {
@@ -72,38 +102,47 @@ function timeUntilNextUtcDay() {
 }
 
 
+
+var customParams = "";
 var seeded = false;
-if (customParams.includes("seed")) {
-    seeded= true; // useful variable as to whether a seed is being used
-    var maxID = 10000000
-    var params = customParams.split('&');
-    var seed = params[params.findIndex(params => params.includes("seed"))].split("=")[1]; // get the seed
+var obvsIdsSeededParams = [];
+var daily = false;
 
-    // daily special seed
-    if (seed.toLowerCase() == "daily"){
-        console.log("DAILY CHALLENGE ACTIVATED!")
-        seed = getFormattedUtcDate();
-        scoreContainer.innerHTML = "<p>Daily Challenge: "+seed+"</p>";
+// user supplied parameyers
+function getParamsToStartGame() {
+    customParams = getCustomParams();
+    if (customParams.includes("seed")) {
+        seeded= true; // useful variable as to whether a seed is being used
+        var maxID = 10000000
+        var params = customParams.split('&');
+        var seed = params[params.findIndex(params => params.includes("seed"))].split("=")[1]; // get the seed
 
-        const timeRemaining = timeUntilNextUtcDay();
-        console.log(`Time until next UTC day: ${timeRemaining.hours} hours, ${timeRemaining.minutes} minutes, ${timeRemaining.seconds} seconds`);
+        // daily special seed
+        if (seed.toLowerCase() == "daily"){
+            daily=true;
+            console.log("DAILY CHALLENGE ACTIVATED!")
+            seed = getFormattedUtcDate();
+            scoreContainer.innerHTML = "<p>Challenge URL: "+window.location.href+"</p><p>Challenge date: "+seed+"</p>";
+
+            const timeRemaining = timeUntilNextUtcDay();
+            console.log(`Time until next UTC day: ${timeRemaining.hours} hours, ${timeRemaining.minutes} minutes, ${timeRemaining.seconds} seconds`);
+            
+        }
+
+        myrng = new Math.seedrandom(seed);
+        
+
+        for (let step = 0; step < 200; step++) {
+            obvsIdsSeededParams.push("&id_above="+Math.floor(myrng()*maxID)+"&order_by=id&order=asc");
+        }
+    } else {
+
+        obvsIdsSeededParamsUnseeded = "&id_above="+Math.floor(Math.random()*5000)+"&order_by=random";
     }
-
-    var myrng = new Math.seedrandom(seed);
-    var obvsIdsSeededParams = []
-
-    for (let step = 0; step < 200; step++) {
-        obvsIdsSeededParams.push("&id_above="+Math.floor(myrng()*maxID)+"&order_by=id&order=asc");
-    }
-} else {
-
-    var obvsIdsSeededParamsUnseeded = "&id_above="+Math.floor(Math.random()*5000)+"&order_by=random";
 }
 
 
-// things applied to all queries
-var baseParams = `&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true&acc_below=150`
-console.log(baseParams)
+
 
 // add the image to the board
 function addImage(result) {
@@ -432,7 +471,23 @@ function handleMapClick(e) {
         addScore(distance);
 
         // make the button reappear
-        nextRoundButton.style.display = "inline-block";
+        if(((roundNumber-1)/roundsPerGame)<nGames){
+            nextRoundButton.style.display = "inline-block";
+        } else {
+            // game finish message
+            var gameFinishMessageSpan = document.getElementById("gameFinishMessage");
+            var h1Element = document.createElement("h3");
+            h1Element.textContent = "Game Finished!";
+            gameFinishMessageSpan.appendChild(h1Element);
+
+            if(daily==true){
+                var timeUntil = document.createElement("p");
+                var timeRemaining2 = timeUntilNextUtcDay();
+                timeUntil.textContent = `Time until next game: ${timeRemaining2.hours} hours, ${timeRemaining2.minutes} minutes, ${timeRemaining2.seconds} seconds`;
+                gameFinishMessageSpan.appendChild(timeUntil);
+            }
+            
+        }
         inatOutwardContainer.style.display = "inline-block";
     }
 }
@@ -490,7 +545,12 @@ function addScore(distance){
 // end game
 function endGame(){
     var gameScore = document.createElement("p");
-    gameScore.innerHTML = `<b>Game ${roundNumber/roundsPerGame}: ${gameScoreTotal} / 25000 Points</b>`;
+    if (seeded){
+        gameScore.innerHTML = `<b>Game: ${gameScoreTotal} / 25000 Points</b>`;
+    } else {
+        gameScore.innerHTML = `<b>Game ${roundNumber/roundsPerGame}: ${gameScoreTotal} / 25000 Points</b>`;
+    }
+    
     scoreContainer.appendChild(gameScore);
     gameScoreTotal = 0;
 }
@@ -600,8 +660,32 @@ async function generateNewRound() {
 }
 
 
+function updateUrl() {
+    // Get the value of the text input
+    const customSeedValue = document.getElementById("fname").value;
+
+    // Remove any existing "seed=" parameter from the URL
+    let url = window.location.href.replace(/(\?|&)seed=[^&]*(&|$)/, "$2");
+
+    // Check which radio button is selected
+    if (document.getElementById("dailyRadio").checked) {
+        // Add "seed=daily" to the URL
+        url += (url.includes("?") ? "&" : "?") + "seed=daily";
+        nGames=1;
+    } else if (document.getElementById("customRadio").checked && customSeedValue) {
+        // Add "seed=XYZ" to the URL where XYZ is the custom seed value
+        url += (url.includes("?") ? "&" : "?") + "seed=" + customSeedValue;
+    } 
+
+    // Update the browser's URL without reloading the page
+    window.history.replaceState({}, document.title, url);
+}
+
+
 // play game button
 playButton.addEventListener("click", function () {
+    updateUrl();
+    getParamsToStartGame();
     document.getElementById("game").style.display="flex";
     playButton.style.display="none";
     document.getElementById("tutorial").style.display="none";
@@ -609,7 +693,7 @@ playButton.addEventListener("click", function () {
 
 
     // Call the function initially to perform the process
-    generateNewRound();
+    generateNewRound();    
 })
 
 // next round
@@ -625,7 +709,7 @@ nextRoundButton.addEventListener("click", function () {
 
 // IMAGE MODAL
 // Modal Setup
-var modal = document.getElementById('modal');
+var modal = document.getElementById('pictureModal');
 
 // close the modal
 modal.addEventListener('click', function() { 

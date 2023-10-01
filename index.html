@@ -7,10 +7,12 @@
     <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <div id="modal" class="modal">
+    <div id="pictureModal" class="pictureModal">
         <img id="modal-content" class="modal-content">
         <p style="color:aliceblue; text-align: center;">Click image to exit</p>
     </div>
+
+    
 
 
      <h1>iNatGuessr</h1>
@@ -18,8 +20,22 @@
 
     <span id="tutorial">
         <p>Welcome to iNatGuessr. A Guessr-style game where you are given a selection of images from iNaturalist observations. From these images it is your task to work out where they are from. When you make a guess the actual location will be revealed. The game is played over 5 rounds with 5000 points per round. Good luck!</p>
-        <p id="gameSettings">Current game settings:</p>
+        <form>
+            <label class="radio-inline">
+              <input type="radio" name="optradio" id="dailyRadio" checked>Daily challenge
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="optradio" id="endlessRadio">Endless mode
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="optradio" id="customRadio">Custom seed:
+              <input type="text" id="fname" name="fname">
+            </label>
+          </form>
     </span>
+
+
+      <br>
     <button id="playButton" class="greenButton">Start game</button>
 
     <br>
@@ -46,13 +62,14 @@
 
         <br>
         <button id="refreshButton" class="greenButton"  style="display: none;">Next round</button>
+        <span id="gameFinishMessage"></span>
         <br>
-        <h4>Your scores:</h4>
+        <h4>Your results:</h4>
         <div id="scoreContainer" ></div>
-        <button id="copyButton">Copy scores to Clipboard</button>
+        <button id="copyButton">Copy results to Clipboard</button>
     </span>
     
-    <p>A prototype by Simon Rolph v0.1.2</p>
+    <p>By Simon Rolph v0.1.3</p>
 
     <img src="images/powered_by.png" style="width: 150px;">
     <br>
