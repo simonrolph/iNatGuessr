@@ -51,6 +51,23 @@ if (seedValue === "daily") {
     inputField.value = "";
 }
 
+// update the user parameter info
+function showParams() {
+    var urlParams = window.location.search;
+    if (urlParams.includes("?")) {
+        var getQuery = urlParams.split('?')[1];
+        var params = getQuery.split('&');
+        console.log("Custom URL parameters supplied")
+
+        var paramInfo = document.getElementById("parameter_info");
+        paramInfo.innerHTML = params.join(" AND ");
+    }
+}
+
+showParams();
+
+
+
 // get custom user query parameters
 function getCustomParams() {
     var urlParams = window.location.search;
@@ -589,33 +606,6 @@ function addCustomPlace(){
     }
 }
 
-// doesn't work for iconic taxa so have removed
-function addCustomTaxon(){
-    // get place names
-    var params = customParams.split('&');
-    if((params.findIndex(params => params.includes("taxon_id")))>-1){ // get the outer radius
-        var taxon_id = params[params.findIndex(params => params.includes("taxon_id"))].split("=")[1];
-
-        taxonContainer.innerHTML = "Selected taxonomic group(s): "
-       
-        // get each of the places
-        taxon_id.split(",").forEach(function (taxon) { 
-            apiUrl= `https://api.inaturalist.org/v1/taxa/${taxon}`;
-                        fetch(apiUrl)
-                            .then(response => response.json())
-                            .then(data => {
-                                taxonContainer.innerHTML += data.results[0].name
-                            })   
-        })
-    } else {
-        taxonContainer.innerHTML = "Selected taxonomic group(s): All species";
-    }
-
-
-
-}
-
-
 
 // generate a new round
 async function generateNewRound() {
@@ -643,7 +633,6 @@ async function generateNewRound() {
         );
 
     addCustomPlace();
-    addCustomTaxon();
 
     window.scrollTo(0, 0); // move to top of page
 

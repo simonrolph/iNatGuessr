@@ -15,7 +15,7 @@
     
 
 
-     <h1>iNatGuessr</h1>
+    <a href="javascript:window.location.href=window.location.href"><h1>iNatGuessr</h1></a>
     <h4>Guess the location based on the <a href="https://www.inaturalist.org/" target="_blank">iNaturalist</a> observations!</h4>
 
     <span id="tutorial">
@@ -35,18 +35,16 @@
     </span>
 
 
-      <br>
+      <p><b>Current game set-up:</b> <span id="parameter_info">Everything, everywhere</span></p>
     <button id="playButton" class="greenButton">Start game</button>
 
-    <br>
 
     <div id="tutorial2">
-        <p><b>Try a game variation:</b> <a href="?">Everything, everywhere</a> 🌍 |  <a href="?taxon_id=3">Birds</a> 🐦🌍 | <a href="?iconic_taxa=Plantae">Plants</a> 🌳🌲🌴🌍 | <a href="?iconic_taxa=Amphibia,Reptilia">Herptiles</a> 🐸🦎🐊🌍 | <a href="?iconic_taxa=Actinopterygii">Fish</a> 🐟🐠🌍 | <a href="?place_id=1">USA Only</a> 🇺🇸</p>
-        <p><b>Create a custom game:</b> You can specify a taxonomic group in the url by adding '?taxon_id=12345' and replace 12345 with the desired taxonomic ID. Similarly, you can specify a place in the url by by adding '?place_id=12345' and replace 12345 with the desired place ID. You can specify multiple IDs by using comma separated values eg. '?place_id=12345,12346'. Want more than just places and taxa? You can use any of the normal iNaturalist <a href="https://forum.inaturalist.org/t/how-to-use-inaturalists-search-urls-wiki-part-1-of-2/63" target="_blank">search parameters</a>.</p>
+        <p><b>Try a game variation:</b> <a href="?">Everything, everywhere</a> 🌍 |  <a href="?taxon_id=3">Birds</a> 🐦🌍 | <a href="?iconic_taxa=Plantae">Plants</a> 🌳🌲🌴🌍 | <a href="?iconic_taxa=Amphibia,Reptilia">Herptiles</a> 🐸🦎🐊🌍 | <a href="?iconic_taxa=Actinopterygii">Fish</a> 🐟🐠🌍 | <a href="?place_id=1">USA Only</a> | <a href="?project_id=freshwater-fishes-of-north-america&place_id=97394">North American freshwater fish</a> </p>
+        <p><b>Create a custom game:</b> You can specify a taxonomic group in the url by adding '?taxon_id=12345' and replace 12345 with the desired taxonomic ID. Similarly, you can specify a place in the url by by adding '?place_id=12345' and replace 12345 with the desired place ID. You can specify multiple IDs by using comma separated values eg. '?place_id=12345,12346'. You can combine places and taxa using <i>&</i> eg. '?place_id=12345&taxon_id=12345'. Want more than just places and taxa? You can use any of the normal iNaturalist <a href="https://forum.inaturalist.org/t/how-to-use-inaturalists-search-urls-wiki-part-1-of-2/63" target="_blank">search parameters</a>.</p>
     </div>
 
     <span id ="game" style="display: none;">
-        <p id="taxonContainer"></p>
 
         <div id="imageContainer"><p>Loading observations...</p></div>
         <p style="font-size: 16px;">Click an image to get a closer look. Images may be subject to copyright.</p>
@@ -69,7 +67,7 @@
         <button id="copyButton">Copy results to Clipboard</button>
     </span>
     
-    <p>By Simon Rolph v0.1.3</p>
+    <p>By Simon Rolph v0.1.4</p>
 
     <img src="images/powered_by.png" style="width: 150px;">
     <br>
