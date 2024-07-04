@@ -15,27 +15,34 @@
     
 
 
-    <a href="javascript:window.location.href=window.location.href"><h1>iNatGuessr</h1></a>
+    <a href="javascript:window.location.href=window.location.href"><h1>🔎🐦🌍 iNatGuessr</h1></a>
     <h4>Guess the location based on the <a href="https://www.inaturalist.org/" target="_blank">iNaturalist</a> observations!</h4>
 
     <span id="tutorial">
-        <p>Welcome to iNatGuessr. A Guessr-style game where you are given a selection of images from iNaturalist observations. From these images it is your task to work out where they are from. When you make a guess the actual location will be revealed. The game is played over 5 rounds with 5000 points per round. Good luck!</p>
-        <form>
-            <label class="radio-inline">
-              <input type="radio" name="optradio" id="dailyRadio" checked>Daily challenge
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="optradio" id="endlessRadio">Endless mode
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="optradio" id="customRadio">Custom seed:
-              <input type="text" id="fname" name="fname">
-            </label>
+        <p>Welcome to iNatGuessr. A Guessr-style game where you are given a selection of images from iNaturalist observations. From these 12 (previously 8) images it is your task to work out where they are from. When you make a guess the actual location will be revealed. The game is played over 5 rounds with 5000 points per round. Good luck!</p>
+        <form style="font-size:26px;">
+            
+          <label class="radio-inline">
+            <input type="radio" name="optradio" id="endlessRadio">
+            <span>Endless mode</span>
+        </label>
+        |
+        <label class="radio-inline">
+            <input type="radio" name="optradio" id="dailyRadio" checked>
+            <span>Daily challenge</span>
+        </label>
+        |
+        <label class="radio-inline">
+            <input type="radio" name="optradio" id="customRadio">
+            <span>Custom seed:</span>
+            <input type="text" id="fname" name="fname">
+        </label>
           </form>
+          <p><b>Current game set-up:</b> <span id="parameter_info">Everything, everywhere</span></p>
     </span>
 
 
-      <p><b>Current game set-up:</b> <span id="parameter_info">Everything, everywhere</span></p>
+    
     <button id="playButton" class="greenButton">Start game</button>
 
 
