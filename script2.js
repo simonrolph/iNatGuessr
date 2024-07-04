@@ -19,6 +19,7 @@ var secretRevealed = false;
 var secretLocation;
 var secretMarker;
 var map;
+var nPhotos = 12;
 
 // things applied to all queries
 var baseParams = `&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true&acc_below=150`
@@ -626,7 +627,7 @@ async function generateNewRound() {
 
     // get supporting observations
     var supportObvs = await getSupportingObvs(
-        7, 
+        nPhotos-1, 
         focalObvs.results[0].location.split(",")[0], 
         focalObvs.results[0].location.split(",")[1],
         focalObvs.results[0].id

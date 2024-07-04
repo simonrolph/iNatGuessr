@@ -165,3 +165,31 @@ hr {
     border: 10px solid green;
     border-radius: 5px;
   }
+
+
+@media screen and (max-width: 1150px) {
+    #map {
+        width: 99vw;
+        height: 800px;
+    }
+
+    #imageContainer {
+        width: 99vw;
+    }
+}
+
+.radio-inline{
+    cursor: pointer;
+}
+
+
+.radio-inline input[type="radio"] {
+    display: none;
+}
+.radio-inline input[type="radio"] + span {
+    font-weight: normal;
+}
+.radio-inline input[type="radio"]:checked + span {
+    font-weight: bold;
+    text-shadow: 0 0 10px #45a049;
+}
