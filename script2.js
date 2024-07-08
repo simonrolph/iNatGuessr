@@ -2,6 +2,7 @@
 var imageContainer = document.getElementById("imageContainer");
 var nextRoundButton = document.getElementById("refreshButton");
 var playButton = document.getElementById("playButton");
+var confirmGuessButtonButton = document.getElementById("confirmGuessButton");
 var scoreContainer = document.getElementById("scoreContainer");
 var inatOutwardContainer = document.getElementById("inatOutwardContainer");
 var taxonContainer = document.getElementById("taxonContainer");
@@ -23,7 +24,7 @@ var nPhotos = 12;
 
 // things applied to all queries
 var baseParams = `&captive=false&geoprivacy=open&quality_grade=research&photos=true&geo=true&acc_below=150`
-console.log(baseParams)
+// console.log(baseParams)
 
 // Get the input field
 var inputField = document.getElementById("fname");
@@ -33,7 +34,7 @@ var inputField = document.getElementById("fname");
 var urlParams = new URLSearchParams(window.location.search);
 var seedValue = urlParams.get("seed");
 
-console.log(seedValue);
+// console.log(seedValue);
 
 // Get the radio buttons
 var dailyRadio = document.getElementById("dailyRadio");
@@ -58,7 +59,7 @@ function showParams() {
     if (urlParams.includes("?")) {
         var getQuery = urlParams.split('?')[1];
         var params = getQuery.split('&');
-        console.log("Custom URL parameters supplied")
+        // console.log("Custom URL parameters supplied")
 
         var paramInfo = document.getElementById("parameter_info");
         paramInfo.innerHTML = params.join(" AND ");
@@ -181,7 +182,7 @@ function addImage(result) {
     // Create a figcaption element for the caption
     var figcaptionElement = document.createElement("figcaption");
 
-    var captionText = "<i>"+result.taxon.name + "</i> by " + result.user.login;
+    var captionText = "<a target='_blank' href='https://www.inaturalist.org/taxa/"+result.taxon.id +"'><i>"+result.taxon.name + "</i><a> by " + result.user.login;
 
     figcaptionElement.innerHTML = captionText; // Set the caption text
     figcaptionElement.style.display = "none"
@@ -246,8 +247,8 @@ async function createBoundingBoxQueryGrid(){
     randomRow = Math.floor(randomRow/2);
     randomCol = Math.floor(randomCol/2);
 
-    console.log("x = " + randomCol);
-    console.log("y = " + randomRow);
+    // console.log("x = " + randomCol);
+    // console.log("y = " + randomRow);
 
     const z=5;
     const neLat = flatfromgrid(randomRow,z);
@@ -256,7 +257,7 @@ async function createBoundingBoxQueryGrid(){
     const swLng = flngfromgrid(randomCol,z);
 
     const boundingBoxString = `&nelat=${neLat}&nelng=${neLng}&swlat=${swLat}&swlng=${swLng}`;
-    console.log(boundingBoxString);
+    // console.log(boundingBoxString);
     return boundingBoxString;
 }
 
@@ -288,8 +289,8 @@ function createGlobalBoundingBoxString() {
 
 // function to get a random observation
 async function getRandomObvs() {
-    console.log(baseParams);
-    console.log(customParams);
+    // console.log(baseParams);
+    // console.log(customParams);
 
     if(seeded){
         var seedParams = obvsIdsSeededParams[roundNumber-1];
@@ -305,12 +306,12 @@ async function getRandomObvs() {
     } else {
         var apiUrl = `https://api.inaturalist.org/v1/observations?per_page=1&page=${roundNumber}${baseParams}${customParams}${seedParams}`+boundingBox;
     }
-    console.log( apiUrl);
+    // console.log( apiUrl);
 
 
     const response = await fetch(apiUrl);
     const data = await response.json();
-    //console.log(data);
+    //// console.log(data);
     imageContainer.innerHTML=""
     addImage(data.results[0]);
     
@@ -342,7 +343,7 @@ async function getSupportingObvs(nObvs, lat, lng,idIgnore) {
             selectedIDs.push(data1.results[Math.round(i / nObvs * nResults)].id);
         }
 
-        console.log(selectedIDs);
+        // console.log(selectedIDs);
 
         // do another API call for those IDs
         var apiUrl2 = 'https://api.inaturalist.org/v1/observations?id='+selectedIDs.join(",");
@@ -369,6 +370,7 @@ function clearPage(){
     imageContainer.innerHTML="Loading observations..."
     inatOutwardContainer.style.display = "none";
     nextRoundButton.style.display = "none";
+    confirmGuessButtonButton.style.display = "inline-block";
     var mapContainer = document.getElementById("mapContainer");
     mapContainer.innerHTML = '<div id="map" class="disabled"></div>'; // Remove the map
     secretRevealed = false;
@@ -425,11 +427,28 @@ function createMap(focal_lat,focal_lng,imageUrl){
 
 }
 
-
+let clickedMarker;
+let whereClicked
 // Add this function to your code to handle map clicks
 function handleMapClick(e) {
-
     if (!secretRevealed) {
+        // Check if there's already a marker on the map
+        if (clickedMarker) {
+            // Remove the current marker from the map
+            map.removeLayer(clickedMarker);
+        }
+
+        // Add a marker where the user clicked
+        clickedMarker = L.marker(e.latlng).addTo(map);
+        whereClicked = e;
+    }
+}
+
+
+// Add this function to your code to handle map clicks
+function theReveal(e) {
+
+    if (!secretRevealed && whereClicked) {
         // Calculate distance between clicked point and secret location
         var distance = e.latlng.distanceTo(secretLocation);
 
@@ -448,9 +467,6 @@ function handleMapClick(e) {
         } else if (angularDifference < -180) {
             e.latlng.lng += 360;
         }
-
-        // Add a marker where the user clicked
-        var clickedMarker = L.marker(e.latlng).addTo(map);
 
         // Draw a line between the clicked marker and the secret location
         var line = L.polyline([e.latlng, secretLocation], {
@@ -487,6 +503,9 @@ function handleMapClick(e) {
 
 
         addScore(distance);
+
+        // hide comfirm guess button
+        confirmGuessButtonButton.style.display = "none"
 
         // make the button reappear
         if(((roundNumber-1)/roundsPerGame)<nGames){
@@ -611,7 +630,7 @@ function addCustomPlace(){
 // generate a new round
 async function generateNewRound() {
     scoreFactor = await scoreScaleFactor();
-    console.log("Score factor:"+scoreFactor);
+    // console.log("Score factor:"+scoreFactor);
 
     clearPage();
 
@@ -645,6 +664,7 @@ async function generateNewRound() {
 
     var obs_url = 'https://www.inaturalist.org/observations?place_id=any&id='+obs_ids.join(",");
     
+    whereClicked = null;
     inatOutwardContainer.innerHTML = `<a href='${obs_url}' target='_blank'>View observations on iNaturalist</a>`;
     
 }
@@ -681,14 +701,22 @@ playButton.addEventListener("click", function () {
     document.getElementById("tutorial").style.display="none";
     document.getElementById("tutorial2").style.display="none";
 
+    // Get the input element by its ID
+    nPhotos = document.getElementById('nPhotos').value;
+    if (nPhotos>12){nPhotos = 12};
+    if (nPhotos<1){nPhotos = 1};
 
     // Call the function initially to perform the process
-    generateNewRound();    
+    generateNewRound();
 })
 
 // next round
 nextRoundButton.addEventListener("click", function () {
     generateNewRound();
+})
+
+confirmGuessButton.addEventListener("click", function () {
+    theReveal(whereClicked);
 })
 
 // next game

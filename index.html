@@ -30,7 +30,8 @@
     <h4>Guess the location based on the <a href="https://www.inaturalist.org/" target="_blank">iNaturalist</a> observations!</h4>
 
     <span id="tutorial">
-        <p>Welcome to iNatGuessr. A Guessr-style game where you are given a selection of images from iNaturalist observations. From these 12 (previously 8) images it is your task to work out where they are from. When you make a guess the actual location will be revealed. The game is played over 5 rounds with 5000 points per round. Good luck!</p>
+        <p>Welcome to iNatGuessr. A Guessr-style game where you are given a selection of images from iNaturalist observations. From these <input type="number" id="nPhotos" name="nPhotos" min="2" max="12" value = "12"> images it is your task to work out where they are from. When you make a guess the actual location will be revealed. The game is played over 5 rounds with 5000 points per round. Good luck!</p>
+        
         <form style="font-size:26px;">
             
           <label class="radio-inline">
@@ -58,7 +59,7 @@
 
 
     <div id="tutorial2">
-        <p><b>Try a game variation:</b> <a href="?">Everything, everywhere</a> 🌍 |  <a href="?taxon_id=3">Birds</a> 🐦🌍 | <a href="?iconic_taxa=Plantae">Plants</a> 🌳🌲🌴🌍 | <a href="?iconic_taxa=Amphibia,Reptilia">Herptiles</a> 🐸🦎🐊🌍 | <a href="?iconic_taxa=Actinopterygii">Fish</a> 🐟🐠🌍 | <a href="?place_id=1">USA Only</a> | <a href="?project_id=freshwater-fishes-of-north-america&place_id=97394">North American freshwater fish</a> </p>
+        <p><b>Try a game variation:</b> <a href="?">Everything, everywhere</a> 🌍 |  <a href="?taxon_id=3">Birds</a> 🐦🌍 | <a href="?iconic_taxa=Plantae">Plants</a> 🌳🌹🌻🌍 | <a href="?iconic_taxa=Amphibia,Reptilia">Herptiles</a> 🐸🦎🐊🌍 | <a href="?iconic_taxa=Actinopterygii">Fish</a> 🐟🐠🌍 | <a href="?place_id=1">USA only 🦅</a> | <a href="?project_id=freshwater-fishes-of-north-america&place_id=97394">North American freshwater fish 🐟</a> | <a href ="?project_id=the-arborsphere-b67c5e40-6b86-4a75-bab7-279c46405b3b">Trees 🌳🌲🌴🌍</a> | <a href ="?project_id=water-birds-of-the-world">Water birds 🦆🌍</a> | <a href ="?taxon_id=47115">Molluscs 🐌🐚🌍</a></p> 
         <p><b>Create a custom game:</b> You can specify a taxonomic group in the url by adding '?taxon_id=12345' and replace 12345 with the desired taxonomic ID. Similarly, you can specify a place in the url by by adding '?place_id=12345' and replace 12345 with the desired place ID. You can specify multiple IDs by using comma separated values eg. '?place_id=12345,12346'. You can combine places and taxa using <i>&</i> eg. '?place_id=12345&taxon_id=12345'. Want more than just places and taxa? You can use any of the normal iNaturalist <a href="https://forum.inaturalist.org/t/how-to-use-inaturalists-search-urls-wiki-part-1-of-2/63" target="_blank">search parameters</a>.</p>
     </div>
 
@@ -74,6 +75,7 @@
             <div id="map" class="disabled"></div>
         </div>
         <div id="scoreFactorContainer"></div>
+        <button id="confirmGuessButton" class="greenButton">Confirm Guess</button>
         <p id="inatOutwardContainer"></p>
 
         <br>
@@ -85,7 +87,7 @@
         <button id="copyButton">Copy results to Clipboard</button>
     </span>
     
-    <p>By Simon Rolph v0.1.4</p>
+    <p>By Simon Rolph v0.1.5</p>
 
     <img src="images/powered_by.png" style="width: 150px;">
     <br>
