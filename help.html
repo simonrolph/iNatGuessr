@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>iNatGuessr - Help</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+    
+    
+    
+    <span id="tutorial">
+        <p><a href="index.html">Return to the homepage</a></p>
+        <h1>How to play iNatGuessr</h1>
+        <h4>Overview</h4>
+        <p>iNatGuessr is a Guessr-style game where you are given a selection of images from iNaturalist observations. From these images it is your task to work out where they are from. When you make a guess the actual location will be revealed. The game is played over 5 rounds with 5000 points per round. The number of points you receive is scaled depending on the game that you're playing.</p>
+
+        <h4>Create a custom game</h4>
+        <p>You can specify a taxonomic group in the url by adding '?taxon_id=12345' and replace 12345 with the desired taxonomic ID. Similarly, you can specify a place in the url by by adding '?place_id=12345' and replace 12345 with the desired place ID. You can specify multiple IDs by using comma separated values eg. '?place_id=12345,12346'. You can combine places and taxa using <i>&</i> eg. '?place_id=12345&taxon_id=12345'. Want more than just places and taxa? You can use any of the normal iNaturalist <a href="https://forum.inaturalist.org/t/how-to-use-inaturalists-search-urls-wiki-part-1-of-2/63" target="_blank">search parameters</a>.</p>
+        <p>One of the easiest ways to create a game is to go to <a href="https://www.inaturalist.org/observations">inaturalist.org/observations</a> and use the filters to subset the observations to a game you want to play, then copy the url parameters into the iNatGuessr url. For example: <i>inaturalist.org/observations?place_id=1&taxon_id=20979</i> becomes <i>simonrolph.github.io/iNatGuessr/?place_id=1&taxon_id=20979</i>
+   
+
+        <h4>Game modes</h4>
+        <p><b>Endless:</b> this game mode is the default game mode, it just keeps going!</p>
+        <p><b>Daily challenge:</b> like Wordle or other daily games, this game mode will select five unique locations which change daily.</p>
+        <p><b>Custom seed:</b> by 'seeding' the game you can ensure repeatability if you want to play with friends. If you select the same game type then enter the same seed (which can be any set of characters) then you will all get the same set of locations.</p>
+
+        <h4>Development</h4>
+        <p>iNatGuessr is powered by the <a href="https://api.inaturalist.org/v1/docs/">iNaturalist API</a>.</p>
+
+        <p>You can view the code for iNatGuessr on GitHub: <a href="https://github.com/simonrolph/iNatGuessr">github.com/simonrolph/iNatGuessr</a>. If you find a bug or have suggestions then feel free to contribute via an issue or pull request.</p> 
+        <p>Many thanks to those who contributed to the discussion on the <a href="https://forum.inaturalist.org/t/inatguessr-can-you-guess-the-location-from-the-observations/44518">iNaturalist Forum</a></p>   
+    </span>
+    <p>By Simon Rolph v0.1.6</p>
+
+    <img src="images/powered_by.png" style="width: 150px;">
+    <br>
+
+</body>
+</html>
