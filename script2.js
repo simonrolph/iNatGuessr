@@ -40,6 +40,9 @@ var seedValue = urlParams.get("seed");
 var dailyRadio = document.getElementById("dailyRadio");
 var endlessRadio = document.getElementById("endlessRadio");
 var customRadio = document.getElementById("customRadio");
+var distanceScoreRadio = document.getElementById("distanceScoreRadio");
+var speciesScoreRadio = document.getElementById("speciesScoreRadio");
+var scoreMode = "distance";
 
 // Check the value of the "seed" parameter and set the radio and input field accordingly
 if (seedValue === "daily") {
@@ -51,6 +54,15 @@ if (seedValue === "daily") {
 } else {
     endlessRadio.checked = true;
     inputField.value = "";
+}
+
+var scoreModeParam = urlParams.get("score_mode");
+if (scoreModeParam === "species") {
+    speciesScoreRadio.checked = true;
+    scoreMode = "species";
+} else {
+    distanceScoreRadio.checked = true;
+    scoreMode = "distance";
 }
 
 // update the user parameter info
@@ -127,6 +139,10 @@ var seeded = false;
 var obvsIdsSeededParams = [];
 var daily = false;
 
+function getSelectedScoreMode() {
+    return document.getElementById("speciesScoreRadio").checked ? "species" : "distance";
+}
+
 // user supplied parameyers
 function getParamsToStartGame() {
     customParams = getCustomParams();
@@ -170,6 +186,7 @@ function addImage(result) {
 
     // Create a figure element to contain the image and caption
     var figureElement = document.createElement("figure");
+    figureElement.dataset.taxonId = result.taxon.id;
 
     // Create an img element for the image
     var imgElement = document.createElement("img");
@@ -182,7 +199,7 @@ function addImage(result) {
     // Create a figcaption element for the caption
     var figcaptionElement = document.createElement("figcaption");
 
-    var captionText = "<a target='_blank' href='https://www.inaturalist.org/taxa/"+result.taxon.id +"'><i>"+result.taxon.name + "</i><a> by " + result.user.login;
+    var captionText = "<a target='_blank' href='https://www.inaturalist.org/taxa/"+result.taxon.id +"'><i>"+result.taxon.name + "</i></a> <span class='species-status'></span> by " + result.user.login;
 
     figcaptionElement.innerHTML = captionText; // Set the caption text
     figcaptionElement.style.display = "none"
@@ -367,6 +384,7 @@ async function getSupportingObvs(nObvs, lat, lng,idIgnore) {
 
 
 function clearPage(){
+    scoreMode = getSelectedScoreMode();
     imageContainer.innerHTML="Loading observations..."
     inatOutwardContainer.style.display = "none";
     nextRoundButton.style.display = "none";
@@ -375,7 +393,11 @@ function clearPage(){
     mapContainer.innerHTML = '<div id="map" class="disabled"></div>'; // Remove the map
     secretRevealed = false;
 
-    scoreFactorContainer.innerHTML = `<p style="font-size: 16px;">Score guide: 1000km = ${calculateScore(1000)} points, 500km = ${calculateScore(500)} points, <${Math.ceil(100*Math.sqrt(scoreFactor))}km = 5000 points </p>`
+    if (scoreMode === "species") {
+        scoreFactorContainer.innerHTML = `<p style="font-size: 16px;">Species match score: 100 km radius from your guess. 5000 points = all shown species present in the guessed area.</p>`;
+    } else {
+        scoreFactorContainer.innerHTML = `<p style="font-size: 16px;">Score guide: 1000km = ${calculateScore(1000)} points, 500km = ${calculateScore(500)} points, <${Math.ceil(100*Math.sqrt(scoreFactor))}km = 5000 points </p>`;
+    }
 }
 
 
@@ -446,11 +468,12 @@ function handleMapClick(e) {
 
 
 // Add this function to your code to handle map clicks
-function theReveal(e) {
+async function theReveal(e) {
 
     if (!secretRevealed && whereClicked) {
+        scoreMode = getSelectedScoreMode();
         // Calculate distance between clicked point and secret location
-        var distance = e.latlng.distanceTo(secretLocation);
+        var distanceKm = e.latlng.distanceTo(secretLocation) / 1000;
 
         // Update the marker opacity to reveal the secret location
         secretMarker.setOpacity(1);
@@ -473,6 +496,9 @@ function theReveal(e) {
             color: '#45a049',
         }).addTo(map);
 
+
+
+
         // Calculate the midpoint between the clicked point and the secret location
         var midpoint = L.latLng(
             (e.latlng.lat + secretLocation.lat) / 2,
@@ -480,10 +506,9 @@ function theReveal(e) {
         );
 
         // Display the distance in a popup at the midpoint
-        var distance = e.latlng.distanceTo(secretLocation)/1000;
         L.popup({ closeButton: false, offset: [0, -15] })
             .setLatLng(midpoint)
-            .setContent('Distance: ' + Math.round(distance) + ' km')
+            .setContent('Distance: ' + Math.round(distanceKm) + ' km')
             .openOn(map);
 
         // zoom to the map
@@ -501,8 +526,19 @@ function theReveal(e) {
             }
         });
 
+        if (scoreMode === "species") {
+            const speciesScore = await scoreSpeciesMatch(e.latlng.lat, e.latlng.lng);
+            addScore(speciesScore.score, `${speciesScore.matched}/${speciesScore.total} species matched`);
 
-        addScore(distance);
+            var circle = L.circle([e.latlng.lat, e.latlng.lng], {
+                color: 'rgb(30, 98, 243)',       // Border color
+                fillColor: 'rgb(30, 98, 243)',  // Fill color
+                fillOpacity: 0.0,   // Opacity of the fill
+                radius: 100000         // Radius in meters
+            }).addTo(map);
+        } else {
+            addScore(calculateScore(distanceKm), `${Math.round(distanceKm)}km`);
+        }
 
         // hide comfirm guess button
         confirmGuessButtonButton.style.display = "none"
@@ -545,6 +581,57 @@ async function scoreScaleFactor(){
     return Math.sqrt(Math.min(1,nGrids/3060)); 
 }
 
+async function scoreSpeciesMatch(lat, lng) {
+    const figureElements = document.querySelectorAll('#imageContainer figure');
+    const taxonIds = Array.from(new Set(Array.from(figureElements).map(function(figure) {
+        return parseInt(figure.dataset.taxonId, 10);
+    }).filter(Boolean)));
+
+    const totalSpecies = taxonIds.length;
+    if (totalSpecies === 0) {
+        return {score: 0, matched: 0, total: 0, matchedTaxa: new Set()};
+    }
+
+    const taxonParam = `&taxon_id=${taxonIds.join(',')}`;
+    const apiUrl = `https://api.inaturalist.org/v1/observations/species_counts?lat=${lat}&lng=${lng}&radius=100&per_page=200${taxonParam}${baseParams}${customParams}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    var gridLayer = L.tileLayer(`https://api.inaturalist.org/v1/grid/{z}/{x}/{y}.png?${taxonParam}&color=%234CAF50`, {
+        maxZoom: 19,
+        attribution: 'iNaturalist data'
+    }).addTo(map);
+
+    // if status is 500
+    if (response.status === 500) {
+        return {score: 0, matched: 0, total: nPhotos, matchedTaxa: new Set()};
+    }
+
+    const matchedTaxa = new Set(data.results.map(function(result) {
+        return result.taxon.id;
+    }));
+
+    figureElements.forEach(function(figureElement) {
+        const statusElement = figureElement.querySelector('.species-status');
+        if (!statusElement) {
+            return;
+        }
+        const figureTaxonId = parseInt(figureElement.dataset.taxonId, 10);
+        if (matchedTaxa.has(figureTaxonId)) {
+            statusElement.textContent = ' ✅';
+        } else {
+            statusElement.textContent = ' ❌';
+        }
+    });
+
+    const matchedCount = taxonIds.filter(function(id) {
+        return matchedTaxa.has(id);
+    }).length;
+    const score = Math.round((matchedCount / totalSpecies) * 5000);
+
+    return {score: score, matched: matchedCount, total: totalSpecies, matchedTaxa: matchedTaxa};
+}
+
 // trigger it immediately so it'll be cached by inat for later use
 async function main() {
     await scoreScaleFactor();
@@ -561,13 +648,10 @@ function calculateScore(distance) {
   }
 }
 
-function addScore(distance){
-    let score = calculateScore(distance);
-
+function addScore(score, extraText) {
     var roundScore = document.createElement("p");
-           
-    // Add some text to the <p> element
-    roundScore.innerHTML = `<a href=${inatOutwardContainer.querySelector('a').getAttribute('href')} target="_blank">Round ${roundNumber}</a>: <b>${score}</b> Points (${Math.round(distance)}km)`;
+    var extra = extraText ? ` (${extraText})` : "";
+    roundScore.innerHTML = `<a href=${inatOutwardContainer.querySelector('a').getAttribute('href')} target="_blank">Round ${roundNumber}</a>: <b>${score}</b> Points${extra}`;
     gameScoreTotal += score;
 
     scoreContainer.appendChild(roundScore);
@@ -674,18 +758,27 @@ function updateUrl() {
     // Get the value of the text input
     const customSeedValue = document.getElementById("fname").value;
 
-    // Remove any existing "seed=" parameter from the URL
+    // Remove any existing "seed=" and "score_mode=" parameters from the URL
     let url = window.location.href.replace(/(\?|&)seed=[^&]*(&|$)/, "$2");
+    url = url.replace(/(\?|&)score_mode=[^&]*(&|$)/, "$2");
+
+    function appendParam(base, param) {
+        return base + (base.includes("?") ? (base.endsWith("?") || base.endsWith("&") ? "" : "&") : "?") + param;
+    }
 
     // Check which radio button is selected
     if (document.getElementById("dailyRadio").checked) {
         // Add "seed=daily" to the URL
-        url += (url.includes("?") ? "&" : "?") + "seed=daily";
-        nGames=1;
+        url = appendParam(url, "seed=daily");
+        nGames = 1;
     } else if (document.getElementById("customRadio").checked && customSeedValue) {
         // Add "seed=XYZ" to the URL where XYZ is the custom seed value
-        url += (url.includes("?") ? "&" : "?") + "seed=" + customSeedValue;
-    } 
+        url = appendParam(url, "seed=" + customSeedValue);
+    }
+
+    if (document.getElementById("speciesScoreRadio").checked) {
+        url = appendParam(url, "score_mode=species");
+    }
 
     // Update the browser's URL without reloading the page
     window.history.replaceState({}, document.title, url);
@@ -694,7 +787,9 @@ function updateUrl() {
 
 // play game button
 playButton.addEventListener("click", function () {
+    scoreMode = getSelectedScoreMode();
     updateUrl();
+    showParams();
     getParamsToStartGame();
     document.getElementById("game").style.display="flex";
     playButton.style.display="none";
